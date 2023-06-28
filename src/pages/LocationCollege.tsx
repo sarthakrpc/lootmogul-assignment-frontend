@@ -1,9 +1,10 @@
 import axios from "axios";
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import StateCollegeDistribution from "../components/StateCollegeDistribution";
+import { useParams } from "react-router-dom";
 
-const Dashboard = () => {
+const LocationCollege = () => {
+  const { state } = useParams();
   const [data, setData] = useState<CollegeType[] | []>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<boolean>(false);
@@ -11,7 +12,9 @@ const Dashboard = () => {
   useEffect(() => {
     let abortSignal = false;
     const fetchColleges = async () => {
-      const { data } = await axios.get("http://localhost:8080/college");
+      const { data } = await axios.get("http://localhost:8080/college/filter", {
+        params: { state },
+      });
       if (!data.error && !abortSignal) {
         setLoading(false);
         setData(data.data);
@@ -26,15 +29,25 @@ const Dashboard = () => {
     return () => {
       abortSignal = true;
     };
-  }, []);
+  }, [state]);
 
   return (
     <div className="py-4 px-2 space-y-4">
       <div className="font-bold text-3xl text-center mb-5 text-gray-600">
-        Dashboard
+        {state}
       </div>
+      {!loading && !error && (
+        <div className="flex flex-row justify-center space-x-1">
+          <div className="text-purple-600 font-semibold">
+            Number of Colleges
+          </div>
+          <div className="text-gray-600 font-semibold">-</div>
+          <div className="text-green-600">{data.length}</div>
+        </div>
+      )}
+
       <div>
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg h-96 overflow-y-scroll">
+        <div className="relative overflow-x-auto shadow-md sm:rounded-lg max-h-[600px] overflow-y-scroll">
           <table className="w-full text-sm text-left text-blue-100">
             <thead className="text-xs text-gray-800 uppercase bg-blue-100 border-b sticky top-0 z-50">
               <tr>
@@ -139,20 +152,8 @@ const Dashboard = () => {
           </table>
         </div>
       </div>
-      <br />
-      <div>
-        <div className="font-bold text-2xl text-center mb-4 text-gray-600">
-          College Statewise Distribution
-        </div>
-        {loading && (
-          <div className="text-center bg-blue-50 border-b text-blue-600 w-96 h-96 m-auto">
-            <div className="animate-pulse bg-blue-300 text-gray-50 p-4 px-2 my-2 rounded-md w-96 h-96"></div>
-          </div>
-        )}
-        {!loading && <StateCollegeDistribution stateData={data} />}
-      </div>
     </div>
   );
 };
 
-export default Dashboard;
+export default LocationCollege;
